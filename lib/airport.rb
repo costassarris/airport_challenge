@@ -23,8 +23,18 @@ class Airport
   end
 
   def request_to_land(plane)
+    raise "Airport is full" if full?
     plane.land!
     planes << plane
+  end
+
+  def request_to_takeoff(plane)
+    plane.takeoff!
+    planes.delete(plane)
+  end
+
+  def full?
+    plane_count == capacity
   end
 
 end
