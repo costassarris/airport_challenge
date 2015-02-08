@@ -9,13 +9,13 @@ describe Plane do
   end
 
   it 'is not flying when landed' do
-    plane.land
+    plane.land!
     expect(plane).not_to be_flying
   end
 
   it'can take off' do
-    plane.land
-    plane.takeoff
+    plane.land!
+    plane.takeoff!
     expect(plane).to be_flying
   end
 

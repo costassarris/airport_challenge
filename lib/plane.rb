@@ -8,11 +8,11 @@ class Plane
     @flying
   end
 
-  def land
+  def land!
     @flying = false
   end
 
-  def takeoff
+  def takeoff!
     @flying = true
   end
 
