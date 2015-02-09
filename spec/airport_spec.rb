@@ -2,41 +2,58 @@ require 'airport'
 require 'plane'
 
 describe Airport do
-let(:airport) {Airport.new}
-let(:plane) {Plane.new}
 
-def fill_airport
-  airport.capacity.times {airport.request_to_land(plane)}
-end
+  let(:airport) {Airport.new}
+  let(:flying_plane) {double :plane, flying?: true}
+  let(:landed_plane) {double :plane, flying?: false}
 
-context 'taking off and landing' do
-  it 'a plane can land' do
-    expect(plane.flying?).to eq true
-    expect(airport.plane_count).to eq(0)
-    airport.request_to_land(plane)
-    expect(plane.flying?).to eq false
-    expect(airport.plane_count).to eq(1)
+
+  def fill_airport
+    airport.capacity.times {airport.permission_to_land(landed_plane)}
   end
 
-  it 'a plane can take off' do
-    airport.request_to_land(plane)
-    airport.request_to_takeoff(plane)
-    expect(plane.flying?).to eq true
-    expect(airport.plane_count).to eq(0)
-  end
-end
+  context 'taking off and landing' do
+    it 'a plane can land' do
+      allow(airport).to receive(:weather_status) {"sunny"}
+      expect(flying_plane).to receive(:request_to_land).with(airport)
+      flying_plane.request_to_land(airport)
+    end
 
-context 'traffic control' do
-  it 'airport knows when it is full' do
-    expect(airport).not_to be_full
-    fill_airport
-    expect(airport).to be_full
+    it 'a plane can take off' do
+      allow(airport).to receive(:weather_status) {"sunny"}
+      airport.planes << landed_plane
+      expect(landed_plane).to receive(:request_to_takeoff).with(airport)
+      landed_plane.request_to_takeoff(airport)
+    end
   end
 
-  it 'a plane cannot land if the airport is full' do
-    fill_airport
-    expect{airport.request_to_land(plane)}.to raise_error(RuntimeError, 'Airport is full')
+  context 'traffic control' do
+    it 'airport knows when it is full' do
+      allow(airport).to receive(:weather_status) {"sunny"}
+      fill_airport
+      expect(airport).to be_full
+    end
+
+    it 'a plane cannot land if the airport is full' do
+      allow(airport).to receive(:weather_status) {"sunny"}
+      fill_airport
+      expect{airport.permission_to_land(flying_plane)}.to raise_error(RuntimeError, 'Airport is full')
+    end
   end
-end
+
+  context 'in stormy weather' do
+    it 'a plane cannot take off' do
+      allow(airport).to receive(:weather_status) {"stormy"}
+      expect(airport.weather_status).to eq('stormy')
+      expect{airport.permission_to_takeoff(landed_plane)}.to raise_error(RuntimeError, 'Storm brewing, cannot take off right now')
+    end
+
+    it 'a plane cannot land' do
+      allow(airport).to receive(:weather_status) {"stormy"}
+      expect(airport.plane_count).to be(0)
+      expect(airport.weather_status).to eq('stormy')
+      expect{airport.permission_to_land(flying_plane)}.to raise_error(RuntimeError, 'Storm brewing, cannot land right now')
+    end
+  end
 
 end

@@ -4,7 +4,7 @@ class Airport
 
   include Weather
 
-  DEFAULT_CAPACITY = 5
+  DEFAULT_CAPACITY = 6
 
   def planes
     @planes ||= []
@@ -22,19 +22,22 @@ class Airport
     planes.count
   end
 
-  def request_to_land(plane)
-    raise "Airport is full" if full?
-    plane.land!
-    planes << plane
+  def permission_to_land(plane)
+    raise "Airport is full" if self.full?
+    raise "Storm brewing, cannot land right now" if (weather_status == 'stormy')
+      planes << plane
   end
 
-  def request_to_takeoff(plane)
-    plane.takeoff!
-    planes.delete(plane)
+  def permission_to_takeoff(plane)
+    raise "Storm brewing, cannot take off right now" if (weather_status == 'stormy')
+      plane.takeoff!
+      planes.delete(plane)
   end
 
   def full?
     plane_count == capacity
   end
+
+
 
 end
